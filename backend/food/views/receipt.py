@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from food.filters.recipe_filter import RecipeFilter
 
-from ..models import Recipe, Favorite, ShoppingCart
-from food.permissions.author_permission import IsAuthorOrReadOnly
-from ..serializers.receipt import (
+from food.models import Recipe, Favorite, ShoppingCart
+from core.permissions.author_permission import IsAuthorOrReadOnly
+from food.serializers.receipt import (
     RecipeSerializer,
     RecipeCreateUpdateSerializer,
     RecipeShortSerializer,
@@ -27,7 +27,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateUpdateSerializer
 
     def get_queryset(self):
-        return Recipe.objects.all()
+        return Recipe.objects.all().order_by('-id')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
