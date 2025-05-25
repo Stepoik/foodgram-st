@@ -1,0 +1,36 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set Docker image tags
+        id: vars
+        run: |
+          echo "BACKEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/foodgram-backend:latest" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/foodgram-frontend:latest" >> $GITHUB_ENV
+
+      - name: Build & push backend
+        run: |
+          docker build -t $BACKEND_IMAGE ./backend
+          docker push $BACKEND_IMAGE
+
+      - name: Build & push frontend
+        run: |
+          docker build -t $FRONTEND_IMAGE ./frontend
+          docker push $FRONTEND_IMAGE
