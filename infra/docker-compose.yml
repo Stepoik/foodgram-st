@@ -1,6 +1,6 @@
 version: '3.3'
-services:
 
+services:
   frontend:
     container_name: foodgram-front
     build: ../frontend
@@ -23,26 +23,19 @@ services:
     build: ../backend
     volumes:
       - backend_static_volume:/app/static
+      - backend_media:/app/media
     depends_on:
       - db
-    environment:
-      DB_ENGINE: django.db.backends.postgresql
-      DB_NAME: foodgram
-      POSTGRES_DB: foodgram
-      POSTGRES_USER: foodgram_user
-      POSTGRES_PASSWORD: foodgram_pass
-      DB_HOST: db
-      DB_PORT: 5432
+    env_file:
+      - .env
   db:
     container_name: foodgram-db
     image: postgres:16
     restart: always
     volumes:
       - pg_data:/var/lib/postgresql/data/
-    environment:
-      POSTGRES_DB: foodgram
-      POSTGRES_USER: foodgram_user
-      POSTGRES_PASSWORD: foodgram_pass
+    env_file:
+      - .env
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U foodgram_user -d foodgram" ]
       interval: 10s
@@ -51,4 +44,5 @@ services:
 
 volumes:
   backend_static_volume:
+  backend_media:
   pg_data:
