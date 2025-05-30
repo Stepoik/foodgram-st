@@ -2,7 +2,10 @@ from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated
+)
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from api.filters import RecipeFilter
@@ -33,7 +36,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticatedOrReadOnly])
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticatedOrReadOnly]
+    )
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
@@ -56,7 +63,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticatedOrReadOnly])
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticatedOrReadOnly]
+    )
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
@@ -79,7 +90,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
         user = request.user
 
@@ -94,13 +109,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         lines = [
-            f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients]
+            f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients  # noqa
+        ]
 
         response = Response('\n'.join(lines), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'
+        response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'  # noqa
         return response
 
-    @action(detail=True, methods=['get'], url_path='get-link')
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='get-link'
+    )
     def get_link(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         link = request.build_absolute_uri(recipe.get_absolute_url())

@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Загружает пользователей из JSON-файла. Пример: python manage.py load_users_from_json path/to/users_data.json'
+    help = 'Загружает пользователей из JSON-файла. Пример: python manage.py load_users_from_json path/to/users_data.json'  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument('json_path', type=str,

@@ -56,7 +56,12 @@ class UserViewSet(DjoserUserViewSet):
             request.user.avatar.delete(save=True)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], url_path='subscriptions', permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=['get'],
+        url_path='subscriptions',
+        permission_classes=[IsAuthenticated]
+    )
     def subscriptions(self, request):
         queryset = User.objects.filter(subscribed_to__subscriber=request.user)
         page = self.paginate_queryset(queryset)
@@ -64,7 +69,12 @@ class UserViewSet(DjoserUserViewSet):
             page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post'], url_path='subscribe', permission_classes=[IsAuthenticated])
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='subscribe',
+        permission_classes=[IsAuthenticated]
+    )
     def subscribe(self, request, id=None):
         target_user = get_object_or_404(User, pk=id)
         serializer = SubscriptionCreateSerializer(
@@ -76,7 +86,10 @@ class UserViewSet(DjoserUserViewSet):
 
         response_serializer = SubscriptionSerializer(
             target_user, context={'request': request})
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id=None):
@@ -84,7 +97,10 @@ class UserViewSet(DjoserUserViewSet):
 
         subscription_qs = request.user.subscriptions.filter(target=target_user)
         if not subscription_qs.exists():
-            return Response({'errors': 'Вы не подписаны на этого пользователя.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'errors': 'Вы не подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         subscription_qs.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

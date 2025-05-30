@@ -10,14 +10,14 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Загружает рецепты из JSON и добавляет случайные ингредиенты (ID 1–2000)'
+    help = 'Загружает рецепты из JSON и добавляет случайные ингредиенты (ID 1–2000)'  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument('json_path', type=str,
                             help='Путь к JSON-файлу с рецептами')
         parser.add_argument(
             '--image', type=str, required=False,
-            help='Путь к картинке-заглушке, которая будет использоваться для всех рецептов'
+            help='Путь к картинке-заглушке, которая будет использоваться для всех рецептов'  # noqa
         )
 
     def handle(self, *args, **options):
@@ -67,9 +67,9 @@ class Command(BaseCommand):
                     recipe.image.save(
                         image_path.name, ImageFile(img_file), save=True)
             else:
-                # Если не указан путь к картинке — можно скипнуть или задать через FileField с заглушкой
+                # Если не указан путь к картинке — можно скипнуть или задать через FileField с заглушкой # noqa
                 self.stderr.write(
-                    f"⛔ Нет изображения для рецепта {recipe.name}, добавьте через --image")
+                    f"⛔ Нет изображения для рецепта {recipe.name}, добавьте через --image")  # noqa
 
             # Добавим 3–6 случайных ингредиентов
             selected_ids = random.sample(
@@ -83,4 +83,4 @@ class Command(BaseCommand):
                 )
 
             self.stdout.write(
-                self.style.SUCCESS(f"✅ Рецепт '{recipe.name}' создан с {len(selected_ids)} ингредиентами"))
+                self.style.SUCCESS(f"✅ Рецепт '{recipe.name}' создан с {len(selected_ids)} ингредиентами"))  # noqa

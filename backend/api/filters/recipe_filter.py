@@ -1,5 +1,10 @@
-from django_filters.rest_framework import FilterSet, BooleanFilter, NumberFilter, AllValuesMultipleFilter
-from food.models import Recipe, Favorite, ShoppingCart
+from django_filters.rest_framework import (
+    FilterSet,
+    BooleanFilter,
+    NumberFilter
+)
+
+from food.models import Recipe
 
 
 class RecipeFilter(FilterSet):
