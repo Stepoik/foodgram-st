@@ -9,7 +9,8 @@ from .user import UserSerializer
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredient
@@ -92,15 +93,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, value):
         if not value:
-            raise serializers.ValidationError("Нужно указать хотя бы один ингредиент.")
+            raise serializers.ValidationError(
+                "Нужно указать хотя бы один ингредиент.")
         ids = [item['id'] for item in value]
         if len(ids) != len(set(ids)):
-            raise serializers.ValidationError("Ингредиенты должны быть уникальными.")
+            raise serializers.ValidationError(
+                "Ингредиенты должны быть уникальными.")
         return value
 
     def validate_image(self, value):
         if value in ("", None):
-            raise serializers.ValidationError("This field is required and cannot be empty.")
+            raise serializers.ValidationError(
+                "This field is required and cannot be empty.")
         return value
 
     def create_ingredients(self, recipe, ingredients):

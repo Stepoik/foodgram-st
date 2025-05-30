@@ -37,13 +37,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            obj, created = Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+            obj, created = Favorite.objects.get_or_create(
+                user=request.user, recipe=recipe)
             if not created:
                 return Response(
                     {'errors': 'Рецепт уже в избранном.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            serializer = RecipeShortSerializer(recipe, context={'request': request})
+            serializer = RecipeShortSerializer(
+                recipe, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         deleted, _ = request.user.favorites.filter(recipe=recipe).delete()
@@ -58,13 +60,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            obj, created = ShoppingCart.objects.get_or_create(user=request.user, recipe=recipe)
+            obj, created = ShoppingCart.objects.get_or_create(
+                user=request.user, recipe=recipe)
             if not created:
                 return Response(
                     {'errors': 'Рецепт уже в корзине.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            serializer = RecipeShortSerializer(recipe, context={'request': request})
+            serializer = RecipeShortSerializer(
+                recipe, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         deleted, _ = request.user.shopping_cart.filter(recipe=recipe).delete()
@@ -89,7 +93,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .annotate(total=Sum('amount'))
         )
 
-        lines = [f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients]
+        lines = [
+            f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients]
 
         response = Response('\n'.join(lines), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'

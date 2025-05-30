@@ -46,7 +46,8 @@ class UserViewSet(DjoserUserViewSet):
     @action(detail=False, methods=['put', 'delete'], url_path='me/avatar')
     def avatar(self, request):
         if request.method == 'PUT':
-            serializer = self.get_serializer(request.user, data=request.data, partial=False)
+            serializer = self.get_serializer(
+                request.user, data=request.data, partial=False)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
@@ -59,7 +60,8 @@ class UserViewSet(DjoserUserViewSet):
     def subscriptions(self, request):
         queryset = User.objects.filter(subscribed_to__subscriber=request.user)
         page = self.paginate_queryset(queryset)
-        serializer = SubscriptionSerializer(page, many=True, context={'request': request})
+        serializer = SubscriptionSerializer(
+            page, many=True, context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='subscribe', permission_classes=[IsAuthenticated])
@@ -72,7 +74,8 @@ class UserViewSet(DjoserUserViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        response_serializer = SubscriptionSerializer(target_user, context={'request': request})
+        response_serializer = SubscriptionSerializer(
+            target_user, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete

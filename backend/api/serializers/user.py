@@ -49,7 +49,8 @@ class SetPasswordSerializer(serializers.Serializer):
     def validate(self, data):
         user = self.context['request'].user
         if not user.check_password(data['current_password']):
-            raise serializers.ValidationError({'current_password': 'Неверный текущий пароль'})
+            raise serializers.ValidationError(
+                {'current_password': 'Неверный текущий пароль'})
         return data
 
 
@@ -76,11 +77,13 @@ class SubscriptionSerializer(UserSerializer):
         if limit is not None and limit.isdigit():
             recipes_qs = recipes_qs[:int(limit)]
 
-        serializer = RecipeShortSerializer(recipes_qs, many=True, context={'request': request})
+        serializer = RecipeShortSerializer(
+            recipes_qs, many=True, context={'request': request})
         return serializer.data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
 
 class SubscriptionCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,7 +94,8 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user
         if request.user == value:
-            raise serializers.ValidationError('Нельзя подписаться на самого себя.')
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя.')
         if user.subscriptions.filter(target=value).exists():
             raise serializers.ValidationError('Вы уже подписаны.')
         return value

@@ -47,8 +47,15 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
-    measurement_unit = models.CharField(max_length=20, verbose_name='Единица измерения')
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Название'
+    )
+    measurement_unit = models.CharField(
+        max_length=20,
+        verbose_name='Единица измерения'
+    )
 
     class Meta:
         ordering = ['name']
@@ -80,8 +87,14 @@ class Recipe(models.Model):
         help_text="Время приготовления в минутах",
         verbose_name='Время приготовления',
         validators=[
-            MinValueValidator(COOKING_TIME_MIN_VALUE, message='Минимальное время — 1 минута.'),
-            MaxValueValidator(COOKING_TIME_MAX_VALUE, message='Максимальное время — 32000 минут (~500 часов).')
+            MinValueValidator(
+                COOKING_TIME_MIN_VALUE,
+                message='Минимальное время — 1 минута.'
+            ),
+            MaxValueValidator(
+                COOKING_TIME_MAX_VALUE,
+                message='Максимальное время — 32000 минут (~500 часов).'
+            )
         ]
     )
     ingredients = models.ManyToManyField(
@@ -123,10 +136,14 @@ class RecipeIngredient(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=[
-            MinValueValidator(INGREDIENT_AMOUNT_MIN_VALUE,
-                              message='Минимальное количество — 1'),
-            MaxValueValidator(INGREDIENT_AMOUNT_MAX_VALUE,
-                              message='Максимальное количество — 32000')
+            MinValueValidator(
+                INGREDIENT_AMOUNT_MIN_VALUE,
+                message='Минимальное количество — 1'
+            ),
+            MaxValueValidator(
+                INGREDIENT_AMOUNT_MAX_VALUE,
+                message='Максимальное количество — 32000'
+            )
         ]
     )
 

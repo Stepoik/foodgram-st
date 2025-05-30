@@ -7,7 +7,8 @@ class Command(BaseCommand):
     help = 'Загрузить ингредиенты из JSON-файла'
 
     def add_arguments(self, parser):
-        parser.add_argument('json_file', type=str, help='Путь до JSON-файла с ингредиентами')
+        parser.add_argument('json_file', type=str,
+                            help='Путь до JSON-файла с ингредиентами')
 
     def handle(self, *args, **kwargs):
         json_file = kwargs['json_file']
@@ -22,4 +23,5 @@ class Command(BaseCommand):
             if created:
                 count += 1
 
-        self.stdout.write(self.style.SUCCESS(f'Успешно загружено {count} ингредиентов'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Успешно загружено {count} ингредиентов'))
