@@ -2,16 +2,15 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from ..models import Subscription
-from ..serializers.user import (
+from api.serializers.user import (
     AvatarSerializer,
     SubscriptionSerializer,
     SetPasswordSerializer,
+    SubscriptionCreateSerializer
 )
 
 User = get_user_model()
@@ -19,8 +18,16 @@ User = get_user_model()
 
 class UserViewSet(DjoserUserViewSet):
     def get_permissions(self):
-        if self.action in ['me', 'set_password', 'avatar', 'delete_avatar', 'subscriptions', 'subscribe',
-                           'unsubscribe']:
+        authenticated_actions = [
+            'me',
+            'set_password',
+            'avatar',
+            'delete_avatar',
+            'subscriptions',
+            'subscribe',
+            'unsubscribe'
+        ]
+        if self.action in authenticated_actions:
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -58,19 +65,23 @@ class UserViewSet(DjoserUserViewSet):
     @action(detail=True, methods=['post'], url_path='subscribe', permission_classes=[IsAuthenticated])
     def subscribe(self, request, id=None):
         target_user = get_object_or_404(User, pk=id)
-        if target_user == request.user:
-            return Response({'errors': 'Нельзя подписаться на самого себя.'}, status=400)
-        _, created = Subscription.objects.get_or_create(subscriber=request.user, target=target_user)
-        if not created:
-            return Response({'errors': 'Вы уже подписаны.'}, status=400)
+        serializer = SubscriptionCreateSerializer(
+            data={'target': target_user.id},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        serializer = SubscriptionSerializer(target_user, context={'request': request})
-        return Response(serializer.data, status=201)
+        response_serializer = SubscriptionSerializer(target_user, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id=None):
         target_user = get_object_or_404(User, pk=id)
-        deleted, _ = Subscription.objects.filter(subscriber=request.user, target=target_user).delete()
-        if not deleted:
-            return Response({'errors': 'Вы не подписаны на этого пользователя.'}, status=400)
-        return Response(status=204)
+
+        subscription_qs = request.user.subscriptions.filter(target=target_user)
+        if not subscription_qs.exists():
+            return Response({'errors': 'Вы не подписаны на этого пользователя.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        subscription_qs.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

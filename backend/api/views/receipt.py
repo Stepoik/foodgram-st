@@ -1,14 +1,15 @@
+from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from food.filters.recipe_filter import RecipeFilter
+from api.filters import RecipeFilter
 
-from food.models import Recipe, Favorite, ShoppingCart
+from food.models import Recipe, Favorite, ShoppingCart, RecipeIngredient
 from core.permissions.author_permission import IsAuthorOrReadOnly
-from food.serializers.receipt import (
+from api.serializers import (
     RecipeSerializer,
     RecipeCreateUpdateSerializer,
     RecipeShortSerializer,
@@ -45,7 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = RecipeShortSerializer(recipe, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        deleted, _ = Favorite.objects.filter(user=request.user, recipe=recipe).delete()
+        deleted, _ = request.user.favorites.filter(recipe=recipe).delete()
         if not deleted:
             return Response(
                 {'errors': 'Рецепт не найден в избранном.'},
@@ -66,7 +67,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = RecipeShortSerializer(recipe, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        deleted, _ = ShoppingCart.objects.filter(user=request.user, recipe=recipe).delete()
+        deleted, _ = request.user.shopping_cart.filter(recipe=recipe).delete()
         if not deleted:
             return Response(
                 {'errors': 'Рецепта нет в корзине.'},
@@ -74,23 +75,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticatedOrReadOnly])
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         user = request.user
-        if not user.is_authenticated:
-            return Response({'detail': 'Authentication required'}, status=401)
 
-        lines = []
-        ingredients = {}
-        for item in ShoppingCart.objects.filter(user=user):
-            for ri in item.recipe.recipeingredient_set.all():
-                name = ri.ingredient.name
-                unit = ri.ingredient.measurement_unit
-                key = f"{name} ({unit})"
-                ingredients[key] = ingredients.get(key, 0) + ri.amount
+        ingredients = (
+            RecipeIngredient.objects
+            .filter(recipe__in_carts__user=user)
+            .values(
+                name=F('ingredient__name'),
+                unit=F('ingredient__measurement_unit')
+            )
+            .annotate(total=Sum('amount'))
+        )
 
-        for name_unit, amount in ingredients.items():
-            lines.append(f"{name_unit}: {amount}")
+        lines = [f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients]
 
         response = Response('\n'.join(lines), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'

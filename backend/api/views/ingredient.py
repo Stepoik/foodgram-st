@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 
 from food.models import Ingredient
-from food.serializers.ingredient import IngredientSerializer
-from food.filters.name_search_filter import NameSearchFilter
+from api.serializers.ingredient import IngredientSerializer
+from api.filters import NameSearchFilter
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):

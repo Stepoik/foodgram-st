@@ -1,23 +1,9 @@
-from rest_framework.exceptions import PermissionDenied
-
-from ..models import Recipe, Ingredient, RecipeIngredient, Favorite, ShoppingCart
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from django.db import transaction
+
+from food.models import Recipe, Ingredient, RecipeIngredient, Favorite, ShoppingCart
 from .user import UserSerializer
-
-
-class RecipeShortSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(use_url=True)
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time',
-        )
 
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
@@ -32,7 +18,11 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
-    ingredients = RecipeIngredientReadSerializer(source='recipeingredient_set', many=True, read_only=True)
+    ingredients = RecipeIngredientReadSerializer(
+        source='recipe_ingredient',
+        many=True,
+        read_only=True
+    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = serializers.ImageField(use_url=True)
@@ -52,21 +42,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if user.is_authenticated:
-            return Favorite.objects.filter(user=user, recipe=obj).exists()
+            return user.favorites.filter(recipe=obj).exists()
         return False
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if user.is_authenticated:
-            return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+            return user.shopping_cart.filter(recipe=obj).exists()
         return False
+
+
+INGREDIENT_AMOUNT_MIN_VALUE = 1
+INGREDIENT_AMOUNT_MAX_VALUE = 32_000
 
 
 class IngredientInRecipeWriteSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(
+        min_value=INGREDIENT_AMOUNT_MIN_VALUE,
+        max_value=INGREDIENT_AMOUNT_MAX_VALUE
+    )
 
     def validate_id(self, value):
         if not Ingredient.objects.filter(id=value).exists():
@@ -74,10 +71,17 @@ class IngredientInRecipeWriteSerializer(serializers.Serializer):
         return value
 
 
+TIME_MIN_VALUE = 1
+TIME_MAX_VALUE = 32_000
+
+
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientInRecipeWriteSerializer(many=True)
     image = Base64ImageField(required=True, allow_null=False)
-    cooking_time = serializers.IntegerField(min_value=1)
+    cooking_time = serializers.IntegerField(
+        min_value=TIME_MIN_VALUE,
+        max_value=TIME_MAX_VALUE
+    )
 
     class Meta:
         model = Recipe
@@ -124,7 +128,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         if ingredients is None:
             raise serializers.ValidationError("This field required.")
         if ingredients is not None:
-            instance.recipeingredient_set.all().delete()
+            instance.recipe_ingredient.all().delete()
             self.create_ingredients(instance, ingredients)
 
         return instance

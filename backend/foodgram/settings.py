@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'food',
+    'api'
 ]
 
 MIDDLEWARE = [
@@ -151,8 +152,8 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': False,
     'SERIALIZERS': {
-        'user_create': 'food.serializers.user.UserCreateSerializer',
-        'user': 'food.serializers.user.UserSerializer',
-        'current_user': 'food.serializers.user.UserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer',
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
     }
 }

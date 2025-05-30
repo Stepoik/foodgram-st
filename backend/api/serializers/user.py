@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .receipt_short import RecipeShortSerializer
-from ..models import Recipe
+from food.models import Subscription
 
 User = get_user_model()
 
@@ -72,7 +72,7 @@ class SubscriptionSerializer(UserSerializer):
         request = self.context.get('request')
         limit = request.query_params.get('recipes_limit')
 
-        recipes_qs = Recipe.objects.filter(author=obj)
+        recipes_qs = obj.recipes.all()
         if limit is not None and limit.isdigit():
             recipes_qs = recipes_qs[:int(limit)]
 
@@ -81,3 +81,20 @@ class SubscriptionSerializer(UserSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+class SubscriptionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ('target',)
+
+    def validate_target(self, value):
+        request = self.context['request']
+        user = request.user
+        if request.user == value:
+            raise serializers.ValidationError('Нельзя подписаться на самого себя.')
+        if user.subscriptions.filter(target=value).exists():
+            raise serializers.ValidationError('Вы уже подписаны.')
+        return value
+
+    def create(self, validated_data):
+        return Subscription.objects.create(subscriber=self.context['request'].user, **validated_data)
