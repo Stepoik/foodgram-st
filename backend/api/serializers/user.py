@@ -101,4 +101,7 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        return Subscription.objects.create(subscriber=self.context['request'].user, **validated_data)  # noqa
+        return Subscription.objects.create(
+            subscriber=self.context['request'].user,
+            **validated_data
+        )

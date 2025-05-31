@@ -9,6 +9,12 @@ from food.models import (
 )
 from .user import UserSerializer
 
+TIME_MIN_VALUE = 1
+TIME_MAX_VALUE = 32_000
+
+INGREDIENT_AMOUNT_MIN_VALUE = 1
+INGREDIENT_AMOUNT_MAX_VALUE = 32_000
+
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
@@ -59,10 +65,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         return False
 
 
-INGREDIENT_AMOUNT_MIN_VALUE = 1
-INGREDIENT_AMOUNT_MAX_VALUE = 32_000
-
-
 class IngredientInRecipeWriteSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
@@ -74,10 +76,6 @@ class IngredientInRecipeWriteSerializer(serializers.Serializer):
         if not Ingredient.objects.filter(id=value).exists():
             raise serializers.ValidationError("Ингредиент не существует.")
         return value
-
-
-TIME_MIN_VALUE = 1
-TIME_MAX_VALUE = 32_000
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):

@@ -5,6 +5,12 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
 
+COOKING_TIME_MIN_VALUE = 1
+COOKING_TIME_MAX_VALUE = 32_000
+
+INGREDIENT_AMOUNT_MIN_VALUE = 1
+INGREDIENT_AMOUNT_MAX_VALUE = 32_000
+
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -66,10 +72,6 @@ class Ingredient(models.Model):
         return f"{self.name}, {self.measurement_unit}"
 
 
-COOKING_TIME_MIN_VALUE = 1
-COOKING_TIME_MAX_VALUE = 32_000
-
-
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
@@ -114,10 +116,6 @@ class Recipe(models.Model):
 
     def get_absolute_url(self):
         return reverse('recipes-detail', kwargs={'pk': self.pk})
-
-
-INGREDIENT_AMOUNT_MIN_VALUE = 1
-INGREDIENT_AMOUNT_MAX_VALUE = 32_000
 
 
 class RecipeIngredient(models.Model):

@@ -108,9 +108,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .annotate(total=Sum('amount'))
         )
 
-        lines = [
-            f"{item['name']} ({item['unit']}) — {item['total']}" for item in ingredients  # noqa
-        ]
+        lines = []
+        for item in ingredients:
+            line = f"{item['name']} ({item['unit']}) — {item['total']}"
+            lines.append(line)
 
         response = Response('\n'.join(lines), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename=shopping_cart.txt'  # noqa
